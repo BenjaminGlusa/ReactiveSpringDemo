@@ -6,7 +6,6 @@ import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.runApplication
 import org.springframework.context.event.EventListener
 import org.springframework.data.annotation.Id
-import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -20,23 +19,22 @@ fun main(args: Array<String>) {
 
 @Component
 class InitializeData(
-		val dogsRepository: DogsRepository
-) : Logging{
+        val dogsRepository: DogsRepository
+) : Logging {
 
-	@EventListener(ApplicationReadyEvent::class)
-	fun initialize() {
-		val saved = Flux.just("Willy", "Wulfi", "Rinona", "Winona")
-				.map { name -> Dog(null, name) }
-				.flatMap { dog -> this.dogsRepository.save(dog) }
+    @EventListener(ApplicationReadyEvent::class)
+    fun initialize() {
+        val saved = Flux.just("Willy", "Wulfi", "Rinona", "Winona")
+                .map { name -> Dog(null, name) }
+                .flatMap { dog -> this.dogsRepository.save(dog) }
 
-		this.dogsRepository.deleteAll()
-				.thenMany(saved )
-				.thenMany( this.dogsRepository.findAll() )
-				.subscribe(logger::info)
-	}
+        this.dogsRepository.deleteAll()
+                .thenMany(saved)
+                .thenMany(this.dogsRepository.findAll())
+                .subscribe(logger::info)
+    }
 }
 
-interface DogsRepository : ReactiveCrudRepository<Dog, String>
+interface DogsRepository : ReactiveCrudRepository<Dog, Int>
 
-@Document
-data class Dog(@Id val id: String?, val name: String)
+data class Dog(@Id val id: Int?, val name: String)
